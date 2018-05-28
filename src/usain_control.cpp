@@ -6,7 +6,11 @@
 
 float map(float x, float in_min, float in_max, float out_min, float out_max)
 {
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+int dc_to_pulsewidth(float dc) {
+  return static_cast<int>(1000 + (dc * 1000));
 }
 
 UsainControl::UsainControl() : _motor_throttle_in(RECEIVER_THROTTLE_PIN),
@@ -19,100 +23,100 @@ UsainControl::UsainControl() : _motor_throttle_in(RECEIVER_THROTTLE_PIN),
 
 void UsainControl::set_mode(UsainControl::mode_t mode)
 {
-    if (mode == MODE_RC)
-    {
-        _rc_handler.detach();
-        _rc_handler.attach_us(callback(this, &UsainControl::handle_rc), 1000);
+  if (mode == MODE_RC)
+  {
+    _rc_handler.detach();
+    _rc_handler.attach_us(callback(this, &UsainControl::handle_rc), 1000);
 
-        _motor_left_out.write(0.0f);
-        _motor_right_out.write(0.0f);
+    _motor_left_out.write(0.0f);
+    _motor_right_out.write(0.0f);
 
-        printf("Control mode set to RC\n");
-    } else
-    {
-        _rc_handler.detach();
+    printf("Control mode set to RC\n");
+  } else
+  {
+    _rc_handler.detach();
 
-        printf("Control mode set to uC\n");
-    }
+    printf("Control mode set to uC\n");
+  }
 
-    _mode = mode;
+  _mode = mode;
 }
 
 UsainControl::mode_t UsainControl::get_mode() const
 {
-    return _mode;
+  return _mode;
 }
 
 void UsainControl::set_motor(UsainControl::motor_t motor, float duty_cycle)
 {
-    if (_mode == MODE_RC)
-        return;
+  if (_mode == MODE_RC)
+    return;
 
-    if (duty_cycle > 1.0)
-    {
-        duty_cycle = 1.0;
-    }
+  if (duty_cycle > 1.0)
+  {
+    duty_cycle = 1.0;
+  }
 
-    // convert set range for motor (1ms - 2ms)
-    duty_cycle = 1000 + (duty_cycle * 1000);
+  // convert set range for motor (1ms - 2ms)
+  duty_cycle = 1000 + (duty_cycle * 1000);
 
-    switch (motor)
-    {
-        case MOTOR_RIGHT:
-            _motor_right_out.write(duty_cycle);
-            break;
+  switch (motor)
+  {
+    case MOTOR_RIGHT:_motor_right_out.pulsewidth_us(duty_cycle);
+      break;
 
-        case MOTOR_LEFT:
-            _motor_left_out.write(duty_cycle);
-    }
+    case MOTOR_LEFT:
+      _motor_left_out.pulsewidth_us(duty_cycle);
+      break;
+  }
 }
 
 void UsainControl::handle_rc()
 {
-    // prevent the motors to run while there is no connection
-    if (_motor_throttle_in.pulsewidth() > 0.0025)
-    {
-        _motor_left_out.write(0.0);
-        _motor_right_out.write(0.0);
-        return;
-    }
+  // prevent the motors to run while there is no connection
+  if (_motor_throttle_in.pulsewidth() > 0.0025)
+  {
+    _motor_left_out.write(0.0);
+    _motor_right_out.write(0.0);
+    return;
+  }
 
-    float throttle_dc = _motor_throttle_in.dutycycle();
-    float steer_dc    = _motor_steer_in.dutycycle();
-
-    steer_dc = map(steer_dc, 0.0448, 0.097, 0.0, 1.0);
-    throttle_dc = map(throttle_dc, 0.0, 0.1, 0.0, 1.0);
-
-    if (steer_dc < 0.5f)
-    {
-        float n = map(steer_dc, 0.0, 0.5, 0.0, 1.0);
-
-        _motor_left_out.write(throttle_dc * n);
-        _motor_right_out.write(throttle_dc);
-    } else if (steer_dc > 0.5f)
-    {
-        float n = map(steer_dc, 0.5, 1.0, 1.0, 0.0);
-
-        _motor_left_out.write(throttle_dc);
-        _motor_right_out.write(throttle_dc * n);
-    } else
-    {
-        _motor_left_out.write(throttle_dc);
-        _motor_right_out.write(throttle_dc);
-    }
-//    if (steer_dc < 0.074f)
-//    {
-//        _motor_left_out.write(throttle_dc * steer_dc * 2);
-//        _motor_right_out.write(throttle_dc);
-//    } else if (steer_dc > 0.076f)
-//    {
-//        _motor_left_out.write(throttle_dc);
-//        _motor_right_out.write(throttle_dc * (-steer_dc * 2) + 2);
-//    } else
-//    {
-//        _motor_left_out.write(throttle_dc);
-//        _motor_right_out.write(throttle_dc);
-//    }
+  float throttle_dc = _motor_throttle_in.dutycycle();
+  float steer_dc = _motor_steer_in.dutycycle();
+//
+//  steer_dc = map(steer_dc, 0.0448, 0.097, 0.0, 1.0);
+//  throttle_dc = map(throttle_dc, 0.0, 0.1, 0.0, 1.0);
+//
+//  if (steer_dc < 0.5f)
+//  {
+//    float n = map(steer_dc, 0.0, 0.5, 0.0, 1.0);
+//
+//    _motor_left_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc * n));
+//    _motor_right_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc));
+//  } else if (steer_dc > 0.5f)
+//  {
+//    float n = map(steer_dc, 0.5, 1.0, 1.0, 0.0);
+//
+//    _motor_left_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc));
+//    _motor_right_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc * n));
+//  } else
+//  {
+//    _motor_left_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc));
+//    _motor_right_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc));
+//  }
+  if (steer_dc < 0.074f)
+  {
+    _motor_left_out.write(throttle_dc * steer_dc * 2);
+    _motor_right_out.write(throttle_dc);
+  } else if (steer_dc > 0.076f)
+  {
+    _motor_left_out.write(throttle_dc);
+    _motor_right_out.write(throttle_dc * (-steer_dc * 2) + 2);
+  } else
+  {
+    _motor_left_out.write(throttle_dc);
+    _motor_right_out.write(throttle_dc);
+  }
 }
 
 /////////////////////////////////////
@@ -121,35 +125,35 @@ void UsainControl::handle_rc()
 
 PwmIn::PwmIn(PinName p) : _p(p)
 {
-    _p.rise(callback(this, &PwmIn::rise));
-    _p.fall(callback(this, &PwmIn::fall));
-    _period     = 0.0;
-    _pulsewidth = 0.0;
-    _t.start();
+  _p.rise(callback(this, &PwmIn::rise));
+  _p.fall(callback(this, &PwmIn::fall));
+  _period = 0.0;
+  _pulsewidth = 0.0;
+  _t.start();
 }
 
 float PwmIn::period()
 {
-    return _period;
+  return _period;
 }
 
 float PwmIn::pulsewidth()
 {
-    return _pulsewidth;
+  return _pulsewidth;
 }
 
 float PwmIn::dutycycle()
 {
-    return _pulsewidth / _period;
+  return _pulsewidth / _period;
 }
 
 void PwmIn::rise()
 {
-    _period = _t.read();
-    _t.reset();
+  _period = _t.read();
+  _t.reset();
 }
 
 void PwmIn::fall()
 {
-    _pulsewidth = _t.read();
+  _pulsewidth = _t.read();
 }
