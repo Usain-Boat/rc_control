@@ -9,11 +9,6 @@ float map(float x, float in_min, float in_max, float out_min, float out_max)
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-int dc_to_pulsewidth(float dc)
-{
-  return static_cast<int>(1000 + (dc * 1000));
-}
-
 UsainControl::UsainControl() : _motor_throttle_in(RECEIVER_THROTTLE_PIN),
                                _motor_steer_in(RECEIVER_STEER_PIN),
                                _motor_left_out(MOTOR_LEFT_OUT_PIN),
@@ -32,18 +27,10 @@ void UsainControl::set_mode(UsainControl::mode_t mode)
     _motor_left_out.write(0.0f);
     _motor_right_out.write(0.0f);
 
-    printf("Control mode set to RC\n");
   } else
   {
     _rc_handler.detach();
-
-    printf("Control mode set to uC\n");
   }
-
-//  while (1)
-//  {
-//    printf("%f\n", _motor_steer_in.dutycycle());
-//  }
 
   _mode = mode;
 }
@@ -76,8 +63,8 @@ void UsainControl::set_motor(UsainControl::motor_t motor, float duty_cycle)
   }
 }
 
-#define PWM_MAX   0.084F
-#define PWM_MIN   0.057F
+#define PWM_MAX   0.097F
+#define PWM_MIN   0.044F
 
 void UsainControl::handle_rc()
 {
@@ -106,23 +93,6 @@ void UsainControl::handle_rc()
     _motor_left_out.write(throttle_MOTOR);
     _motor_right_out.write(throttle_MOTOR);
   }
-
-//  float throttle_dc = _motor_throttle_in.dutycycle();
-//  float steer_dc = map(_motor_steer_in.dutycycle(), PWM_MIN, PWM_MAX, 0.0, 1.0);
-//
-//  if (steer_dc < 0.069)
-//  {
-//    _motor_left_out.write(throttle_dc);
-//    _motor_right_out.write(throttle_dc);
-//  } else if (steer_dc > 0.072)
-//  {
-//    _motor_left_out.write(throttle_dc);
-//    _motor_right_out.write(throttle_dc);
-//  } else
-//  {
-//    _motor_left_out.write(throttle_dc);
-//    _motor_right_out.write(throttle_dc);
-//  }
 }
 
 /////////////////////////////////////
