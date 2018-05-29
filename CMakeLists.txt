@@ -1054,7 +1054,7 @@ ADD_EXECUTABLE(rc_control
   mbed-os/targets/TARGET_STM/us_ticker_32b.c
   mbed_config.h
         src/main.cpp
-        src/usain_control.cpp src/usain_control.h)
+        src/usain_control.cpp src/usain_control.h src/usain_led.cpp src/usain_led.h)
 SET_TARGET_PROPERTIES(rc_control PROPERTIES ENABLE_EXPORTS 1)
 # add syslibs dependencies to create the correct linker order
 TARGET_LINK_LIBRARIES(rc_control -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys)

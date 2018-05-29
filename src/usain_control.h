@@ -46,10 +46,10 @@ private:
 
 class UsainControl
 {
-    static const PinName RECEIVER_THROTTLE_PIN = D3;
-    static const PinName RECEIVER_STEER_PIN    = D4;
-    static const PinName MOTOR_LEFT_OUT_PIN    = D5;
-    static const PinName MOTOR_RIGHT_OUT_PIN   = D6;
+    static const PinName RECEIVER_THROTTLE_PIN = PF_2;
+    static const PinName RECEIVER_STEER_PIN    = PF_1;
+    static const PinName MOTOR_LEFT_OUT_PIN    = PA_15;
+    static const PinName MOTOR_RIGHT_OUT_PIN   = PB_1;
 
 public:
     typedef enum

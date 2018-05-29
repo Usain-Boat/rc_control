@@ -9,7 +9,8 @@ float map(float x, float in_min, float in_max, float out_min, float out_max)
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-int dc_to_pulsewidth(float dc) {
+int dc_to_pulsewidth(float dc)
+{
   return static_cast<int>(1000 + (dc * 1000));
 }
 
@@ -39,6 +40,11 @@ void UsainControl::set_mode(UsainControl::mode_t mode)
     printf("Control mode set to uC\n");
   }
 
+//  while (1)
+//  {
+//    printf("%f\n", _motor_steer_in.dutycycle());
+//  }
+
   _mode = mode;
 }
 
@@ -65,11 +71,13 @@ void UsainControl::set_motor(UsainControl::motor_t motor, float duty_cycle)
     case MOTOR_RIGHT:_motor_right_out.pulsewidth_us(duty_cycle);
       break;
 
-    case MOTOR_LEFT:
-      _motor_left_out.pulsewidth_us(duty_cycle);
+    case MOTOR_LEFT:_motor_left_out.pulsewidth_us(duty_cycle);
       break;
   }
 }
+
+#define PWM_MAX   0.084F
+#define PWM_MIN   0.057F
 
 void UsainControl::handle_rc()
 {
@@ -81,42 +89,40 @@ void UsainControl::handle_rc()
     return;
   }
 
-  float throttle_dc = _motor_throttle_in.dutycycle();
-  float steer_dc = _motor_steer_in.dutycycle();
-//
-//  steer_dc = map(steer_dc, 0.0448, 0.097, 0.0, 1.0);
-//  throttle_dc = map(throttle_dc, 0.0, 0.1, 0.0, 1.0);
-//
-//  if (steer_dc < 0.5f)
-//  {
-//    float n = map(steer_dc, 0.0, 0.5, 0.0, 1.0);
-//
-//    _motor_left_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc * n));
-//    _motor_right_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc));
-//  } else if (steer_dc > 0.5f)
-//  {
-//    float n = map(steer_dc, 0.5, 1.0, 1.0, 0.0);
-//
-//    _motor_left_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc));
-//    _motor_right_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc * n));
-//  } else
-//  {
-//    _motor_left_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc));
-//    _motor_right_out.pulsewidth_ms(dc_to_pulsewidth(throttle_dc));
-//  }
-  if (steer_dc < 0.074f)
+  float throttle_MOTOR = _motor_throttle_in.dutycycle();
+  float throttle_dc = ((_motor_throttle_in.dutycycle() - PWM_MIN) / (PWM_MAX - PWM_MIN));
+  float steer_dc = ((_motor_steer_in.dutycycle() - PWM_MIN) / (PWM_MAX - PWM_MIN));
+
+  if (steer_dc < (PWM_MAX - PWM_MIN) / 2 + PWM_MIN)
   {
-    _motor_left_out.write(throttle_dc * steer_dc * 2);
-    _motor_right_out.write(throttle_dc);
-  } else if (steer_dc > 0.076f)
+    _motor_left_out.write(throttle_MOTOR);
+    _motor_right_out.write((PWM_MAX - PWM_MIN) * (steer_dc * 2) * throttle_dc + PWM_MIN);
+  } else if (steer_dc > (PWM_MAX - PWM_MIN) / 2 + PWM_MIN)
   {
-    _motor_left_out.write(throttle_dc);
-    _motor_right_out.write(throttle_dc * (-steer_dc * 2) + 2);
+    _motor_left_out.write((PWM_MAX - PWM_MIN) * ((1 - steer_dc) * 2) * throttle_dc + PWM_MIN);
+    _motor_right_out.write(throttle_MOTOR);
   } else
   {
-    _motor_left_out.write(throttle_dc);
-    _motor_right_out.write(throttle_dc);
+    _motor_left_out.write(throttle_MOTOR);
+    _motor_right_out.write(throttle_MOTOR);
   }
+
+//  float throttle_dc = _motor_throttle_in.dutycycle();
+//  float steer_dc = map(_motor_steer_in.dutycycle(), PWM_MIN, PWM_MAX, 0.0, 1.0);
+//
+//  if (steer_dc < 0.069)
+//  {
+//    _motor_left_out.write(throttle_dc);
+//    _motor_right_out.write(throttle_dc);
+//  } else if (steer_dc > 0.072)
+//  {
+//    _motor_left_out.write(throttle_dc);
+//    _motor_right_out.write(throttle_dc);
+//  } else
+//  {
+//    _motor_left_out.write(throttle_dc);
+//    _motor_right_out.write(throttle_dc);
+//  }
 }
 
 /////////////////////////////////////
