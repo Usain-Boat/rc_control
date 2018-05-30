@@ -59,9 +59,9 @@ void UsainLED::routine()
     switch (current_pattern)
     {
       case STANDBY:set_color(COLOR_YELLOW);
-        wait(0.3);
+        wait(0.1);
         set_color(COLOR_NO);
-        wait(0.3);
+        wait(1.5);
         break;
 
       case LOADING:set_color(COLOR_RED);
