@@ -29,21 +29,19 @@ class UsainLED
 
   UsainLED();
 
-  void init();
+  static void set_color(color_t color);
 
-  void set_color(color_t color);
-
-  void set_pattern(UsainLED::pattern_t pattern);
+  static void set_pattern(UsainLED::pattern_t pattern);
 
  private:
-  void routine();
+  static void routine();
 
-  Thread led_thread;
-  DigitalOut led_red;
-  DigitalOut led_green;
-  DigitalOut led_blue;
+  static Thread led_thread;
+  static DigitalOut led_red;
+  static DigitalOut led_green;
+  static DigitalOut led_blue;
 
-  pattern_t current_pattern;
+  static pattern_t current_pattern;
 };
 
 #endif //RC_CONTROL_USAIN_LED_H

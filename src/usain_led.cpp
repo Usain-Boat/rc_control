@@ -3,17 +3,16 @@
 //
 
 #include "usain_led.h"
-UsainLED::UsainLED() : led_red(PD_11),
-                       led_green(PD_13),
-                       led_blue(PD_12),
-                       current_pattern(NO)
-{
-  init();
-}
 
-void UsainLED::init()
+Thread UsainLED::led_thread;
+DigitalOut UsainLED::led_red(PD_11);
+DigitalOut UsainLED::led_green(PD_13);
+DigitalOut UsainLED::led_blue(PD_12);
+UsainLED::pattern_t UsainLED::current_pattern(NO);
+
+UsainLED::UsainLED()
 {
-  led_thread.start(callback(this, &UsainLED::routine));
+  led_thread.start(&UsainLED::routine);
 }
 
 void UsainLED::set_color(UsainLED::color_t color)
