@@ -69,6 +69,13 @@ void UsainLED::routine()
         wait(0.1);
         break;
 
+      case INTERACTIVE:
+        set_color(COLOR_BLUE);
+        wait(0.1);
+        set_color(COLOR_NO);
+        wait(1.5);
+        break;
+
       default:set_color(COLOR_NO);
         break;
     }

@@ -23,6 +23,7 @@ class UsainLED
   {
     STANDBY,
     LOADING,
+    INTERACTIVE,
     ERROR,
     NO
   } pattern_t;
